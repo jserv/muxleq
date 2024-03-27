@@ -1,0 +1,9 @@
+subleq
+muxleq
+*.o
+*.exe
+*.a
+*.dll
+*.so
+1.dec
+2.dec
