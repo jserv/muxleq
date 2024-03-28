@@ -1,5 +1,4 @@
 defined eforth [if] ' ) <ok> ! [then] ( Turn off ok prompt )
-\ TODO: Rewrite iLOAD, iADD, iSUB, Comparison operators...
 only forth definitions hex
 1 constant opt.multi      ( Add in large "pause" primitive )
 1 constant opt.editor     ( Add in Text Editor )
@@ -18,7 +17,8 @@ only forth definitions hex
 : sys.info     4 or ; ( bit #3 = print info msg on startup )
 : sys.eof      8 or ; ( bit #4 = die if received EOF )
 : sys.warnv  $10 or ; ( bit #5 = warn if virtualized )
-0 ( sys.cksum ) sys.eof sys.echo-off sys.warnv constant opt.sys
+0 ( sys.cksum ) sys.eof sys.echo-off 
+  sys.warnv constant opt.sys
 defined (order) 0= [if]
 : (order) ( w wid*n n -- wid*n w n )
   dup if
@@ -244,15 +244,13 @@ $10 tvar {width}   \ set by size detection routines
 :m INC 2/ neg1 2/ t, t, NADDR ;m ( b -- )
 :m DEC 2/ one  2/ t, t, NADDR ;m ( b -- )
 :m MUXR >r 2/ t, 2/ t, r> 2/ $8000 or t, ;m
-:m MMOV swap zreg MUXR ;m
+:m MMOV swap zreg MUXR ;m ( a a -- )
+:m -MMOV swap neg1 MUXR ;m ( a a -- )
 :m iJMP there 2/ 5 + 2* MMOV Z Z NADDR ;m ( a -- )
 :m ONE! one swap MMOV ;m ( a -- : set address to '1' )
 :m NG1! neg1 swap MMOV ;m ( a -- : set address to '-1' )
-
-:m MOV 2/ >r r@ dup t, t, NADDR 2/ t, Z  NADDR r> Z  t, NADDR
-   Z Z NADDR ;m
-
-:m iLOAD there 2/ 3 1 * 3 + + 2* MMOV 0 swap MOV ;m ( a a -- )
+:m iSTORE there 4 2* + MMOV 0 MMOV ;m ( a a -- )
+:m iLOAD there 3 2* + MMOV 0 swap MMOV ;m
 :m iADD ( a a -- : indirect add )
    2/ t, A, NADDR
    2/ t, V, NADDR
@@ -268,7 +266,6 @@ $10 tvar {width}   \ set by size detection routines
    A,   t, NADDR
    r> t, 0 t, NADDR
    A, A, NADDR ;m
-:m iSTORE there 4 2* + MMOV 0 MMOV ;m
 :m ++sp {sp} DEC ;m ( -- : grow variable stack )
 :m --sp {sp} INC ;m ( -- : shrink variable stack )
 :m --rp {rp} DEC ;m ( -- : shrink return stack )
@@ -307,7 +304,7 @@ label: start         \ System Entry Point
 label: chk16
   r0 r0 ADD                        \ r0 = r0 * 2
   r1 INC                           \ r1++
-  r1 r2 MMOV                        \ r2 = r1
+  r1 r2 MMOV                       \ r2 = r1
   mwidth r2 SUB r2 +if die JMP then \ check length < max width
   r0 +if chk16 JMP then            \ check if still positive
 opt.self [if] \ if width > 16, jump to 16-bit emulator
@@ -324,14 +321,14 @@ opt.self [if] ( self JMP ) there 2/ {pc} t!  [then]
 label: vm ( Forth Inner Interpreter )
   r0 ip iLOAD         \ Get instruction to execute from IP
   ip INC              \ IP now points to next instruction!
-  primitive r1 MMOV    \ Copy as SUB is destructive
+  primitive r1 MMOV   \ Copy as SUB is destructive
   r0 r1 SUB           \ Check if it is a primitive
   r1 +if r0 iJMP then \ Jump straight to VM functions if it is
   ++rp                \ If it wasn't a VM instruction, inc {rp}
   ip {rp} iSTORE      \ and store ip to return stack
-  r0 ip MMOV vm a-optim \ "r0" holds our next instruction
+  r0 ip MMOV \ "r0" holds our next instruction
   vm JMP              \ Ad infinitum...
-:m ;a (fall-through); vm a-optim vm JMP ;m
+:m ;a (fall-through); vm JMP ;m
 opt.self [if]
   \ THIS NEEDS REWORKING FOR MUXLEQ
 0 tvar {zreg} {zreg} 2/ tzreg !
@@ -423,7 +420,7 @@ assembler.1 -order
 :a - tos {sp} iSUB t' opDrop JMP (a); ( n n -- n )
 :a + tos {sp} iADD t' opDrop JMP (a); ( n n -- n )
 :a shift ( u n -- u : right shift 'u' by 'n' places )
-  bwidth r0 MMOV       \ load machine bit width
+  bwidth r0 MMOV      \ load machine bit width
   tos r0 SUB          \ adjust tos by machine width
   tos {sp} iLOAD --sp \ pop value to shift
   r1 ZERO             \ zero result register
@@ -436,7 +433,13 @@ assembler.1 -order
     r0 DEC \ decrement loop counter
   r0 +if shift.loop JMP then 
   r1 tos MMOV ;a \ move result back into tos
-
+:a opGet ( -- char )
+   ++sp tos {sp} iSTORE
+  tos GET ;a
+\ :a opPush
+\   ++sp tos {sp} iSTORE
+\   tos ip iLOAD
+\   ip INC ;a
 :a opMux ( u1 u2 u3 -- u : bitwise multiplexor function )
   r4 {sp} iLOAD --sp \ pop first input
   r3 {sp} iLOAD --sp \ pop second input
@@ -452,7 +455,7 @@ opt.divmod [if]
     r0 -if 
       tos r0 ADD     ( correct remainder )
       r1 DEC         ( correct quotient )
-      r1 tos MMOV     ( store results back to tos )
+      r1 tos MMOV    ( store results back to tos )
       r0 {sp} iSTORE ( ...and stack )
       vm JMP         ( finish... )
     then
@@ -682,7 +685,7 @@ system[
 : execute 2/ >r ; ( xt -- : execute an execution token )
 :s @execute ( ?dup 0= ?exit ) @ execute ;s ( xt -- )
 : ?exit if rdrop then ; compile-only ( u --, R: -- |??? )
-: key? pause #-1 [@] negate ( -- c 0 | -1 : get byte of input )
+: key? pause opGet ( -- c 0 | -1 : get byte of input )
    s>d if
      [ {options} ] literal @
      [ 8 ] literal and if bye then drop #0 exit
