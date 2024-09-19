@@ -53,49 +53,58 @@ for building new images after modifying any Forth source files. To initiate
 self-hosting and validation, run `make bootstrap`.
 
 ## MUXLEQ
-The pseudo code for this SUBLEQ variant, MUXLEQ, is:
-```
-	while pc >= 0:
-		a = m[pc + 0]
-		b = m[pc + 1]
-		c = m[pc + 2]
-		pc = pc + 3
-		if a == -1:
-			m[b] = get_byte()
-		else if b == -1:
-			put_byte(m[a])
-		else if c != -1 and c < 0:
-			m[b] = (m[a] & ~m[c]) | (m[b] & m[c])
-		else:
-			r = m[b] - m[a]
-			if r <= 0:
-				pc = c
-			m[b] = r
+The MUXLEQ architecture is an enhancement of the classic SUBLEQ one-instruction
+set computer (OISC). MUXLEQ introduces an additional instruction that improves 
+performance while maintaining the simplicity of SUBLEQ. Below is the pseudo code
+for the MUXLEQ variant:
+```python
+while pc >= 0:
+    a = m[pc + 0]
+    b = m[pc + 1]
+    c = m[pc + 2]
+    pc += 3
+    if a == -1:
+        m[b] = get_byte()  # Input a byte to memory at address b
+    elif b == -1:
+        put_byte(m[a])     # Output the byte stored at memory address a
+    elif c != -1 and c < 0:
+        m[b] = (m[a] & ~m[c]) | (m[b] & m[c])  # Multiplex operation
+    else:
+        r = m[b] - m[a]   # SUBLEQ subtraction
+        if r <= 0:
+            pc = c        # Branch if the result is less than or equal to zero
+        m[b] = r
+
 ```
 
-Removing the line `else if c != -1 and c < 0:` along with the clause turns
-this variant back into a SUBLEQ machine.
+Removing the `elif c != -1 and c < 0:` clause effectively reverts MUXLEQ to a
+typical SUBLEQ machine, as this conditional handles the multiplexing logic unique
+to MUXLEQ.
 
-Possible variants to pack as much functionality as possible in would include:
-* Bit reversal, the resulting multiplexed value could have its bits reversed.
-  This could be folded into the `mux` instruction.
-* Right shift, even if only by one place.
+The simplicity of the MUXLEQ design allows for further optimizations by packing
+additional functionality into the instruction set.
+Some possible variants include:
+* Bit Reversal: The multiplexed value could have its bits reversed during the
+  operation. This functionality could be integrated into the `mux` instruction,
+  allowing for efficient bit manipulation.
+* Right Shift: Incorporating a right shift operation, even by just one position,
+  would significantly enhance the arithmetic capabilities of the system.
 * Comparison, the result of comparing `m[a]` and `m[b]` could be stored in
   `m[a]`, useful comparisons would be `is zero?`, signed or unsigned less than
   or greater than. Any of those five would be useful.
 * The paper "[Subleq: An Area-Efficient Two-Instruction-Set Computer](https://janders.eecg.utoronto.ca/pdfs/esl.pdf)"
-  extends SUBLEQ in a different way using bit-reversal that should lend itself
-  to a hardware implementation that uses minimal extra resources as the
-  structure of the new instruction is very similar SUBLEQ. If the `c` operand
-  is negative it computes `r = reverse(reverse(m[b]) - reverse(m[a]))`. This
-  turns the less than or equal to zero branch into a branch on evenness,
-  allowing a quicker right shift to be implemented using minimal resources.
-  `reverse` reverses all bits in a cell.
+  introduces bit-reversal to enhance hardware efficiency. When the c operand is
+  negative, the operation `r = reverse(reverse(m[b]) - reverse(m[a]))` is
+  performed, where `reverse` flips the bits of a value. This modification turns
+  the "less than or equal to zero" branch into a branch on evenness, allowing
+  an efficient right shift with minimal additional hardware resources.
 
-This variant greatly speeds up loading, storing and the bitwise operations,
-even with minimal effort. There are a few features missing from this MUXLEQ
-variant (such as the "self-interpreter") and as such have been disabled. No
-doubt if more effort was expended many more performance gains could be made.
+Although the current MUXLEQ variant already demonstrates considerable
+improvements over SUBLEQ, there are a few missing features, such as the
+"self-interpreter" feature found in some extended SUBLEQ variants. With further
+effort, additional performance gains and capabilities could be implemented,
+further closing the gap between minimalistic architecture and more conventional
+designs.
 
 ## License
 This package is released under the Public Domain and was initially written
