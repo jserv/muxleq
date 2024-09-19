@@ -21,15 +21,25 @@ muxleq-dec.c: muxleq.dec
 muxleq.dec: muxleq.fth
 	$(Q)gforth $< > $@
 
-# Simple checks
+CHECK_FILES := \
+	loops \
+	radix \
+	sqrt
+
+EXPECTED_loops = *
+EXPECTED_radix = 2730
+EXPECTED_sqrt = 49
+
 check: muxleq
-	$(Q)$(PRINTF) "Running eForth ... "; \
-	    if echo "words bye" | ./muxleq | grep eforth >/dev/null; then \
+	$(Q)$(foreach e,$(CHECK_FILES),\
+	    $(PRINTF) "Running tests/$(e).fth ... "; \
+	    if ./muxleq < tests/$(e).fth | grep -q "$(strip $(EXPECTED_$(e)))"; then \
 	    $(call notice, [OK]); \
 	    else \
 	    $(PRINTF) "Failed.\n"; \
 	    exit 1; \
-	    fi;
+	    fi; \
+	)
 
 # bootstrapping
 bootstrap: muxleq-stage1.dec
