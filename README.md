@@ -26,9 +26,13 @@ and GNU Make.
 * macOS: `brew install gforth`
 * Ubuntu Linux / Debian: `sudo apt-get install gforth build-essential`
 
-To run, type:
-```shell
-$ make run
+To run eForth on MUXLEQ, type `make run`. Below is an example session:
+```
+words
+21 21 + . cr
+: hello ." Hello World!" cr ;
+hello
+bye
 ```
 
 Gforth compiles the image from `muxleq.fth`, but as Forth systems are self-hosting,
