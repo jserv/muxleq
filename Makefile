@@ -1,13 +1,9 @@
 CFLAGS=-Wall -Wextra -O2 -std=c99
 
-.PHONY: run old test clean
-
+.PHONY: run test clean
 
 run: muxleq muxleq.dec
 	./muxleq muxleq.dec
-
-old: subleq subleq.dec
-	./subleq subleq.dec
 
 muxleq.dec: muxleq.fth
 	gforth $< > $@
@@ -20,8 +16,5 @@ muxleq.dec: muxleq.fth
 
 test: 2.dec
 
-subleq.dec: subleq.fth
-	gforth $< > $@
-
 clean:
-	git clean -dffx 
+	$(RM) muxleq
