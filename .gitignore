@@ -1,6 +1,7 @@
 muxleq
 muxleq.dec
 muxleq-dec.c
+muxleq-stage1.dec
 *.o
 *.exe
 *.a

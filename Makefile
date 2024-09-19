@@ -1,35 +1,48 @@
-CFLAGS=-Wall -Wextra -O2 -std=c99
+include mk/common.mk
+
+CFLAGS += -O2 -std=c99
+CFLAGS += -Wall -Wextra
 
 .PHONY: run bootstrap clean
 
 all: muxleq
 
 muxleq: muxleq.c muxleq-dec.c
-	$(CC) $(CFLAGS) -o $@ muxleq.c
+	$(VECHO) "  CC+LD\t$@\n"
+	$(Q)$(CC) $(CFLAGS) -o $@ muxleq.c
 
 run: muxleq muxleq.dec
-	./muxleq
+	$(Q)./muxleq
 
 muxleq-dec.c: muxleq.dec
-	sed 's/$$/,/' $^ > $@
+	$(VECHO) "  EMBED\t$@\n"
+	$(Q)sed 's/$$/,/' $^ > $@
 
 muxleq.dec: muxleq.fth
-	gforth $< > $@
+	$(Q)gforth $< > $@
 
 # Simple checks
 check: muxleq
-	@echo "words bye" | ./muxleq
-	@echo
+	$(Q)$(PRINTF) "Running eForth ... "; \
+	    if echo "words bye" | ./muxleq | grep eforth >/dev/null; then \
+	    $(call notice, [OK]); \
+	    else \
+	    $(PRINTF) "Failed.\n"; \
+	    exit 1; \
+	    fi;
 
 # bootstrapping
 bootstrap: muxleq-stage1.dec
-	@if ! diff muxleq.dec muxleq-stage1.dec; then \
-	echo "Unable to bootstrap. Aborting"; false; \
-	fi
+	$(Q)if diff muxleq.dec muxleq-stage1.dec; then \
+	$(call notice, [OK]); \
+	else \
+	$(PRINTF) "Unable to bootstrap. Aborting"; \
+	exit 1; \
+	fi;
 
 muxleq-stage1.dec: muxleq muxleq.fth muxleq.dec
-	@echo "Bootstrapping..."
-	./muxleq muxleq.dec < muxleq.fth > $@
+	$(VECHO)  "Bootstrapping... "
+	$(Q)./muxleq muxleq.dec < muxleq.fth > $@
 
 clean:
 	$(RM) muxleq
