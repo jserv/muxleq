@@ -219,7 +219,8 @@ $10 tvar {width}   \ set by size detection routines
   0 tvar {editor}   \ editor vocabulary
   0 tvar {root-voc} \ absolute minimum vocabulary
   0 tvar {system}   \ system functions vocabulary
-  0 tvar {cold}     \ entry point of VM program, set later on
+  0 tvar {boot}     \ entry point of VM program, set later on
+  0 tvar {quit}     \ Execution token called after init
   0 tvar {last}     \ last defined word
   0 tvar {cycles}   \ number of times we have switched tasks
   1 tvar {single}   \ is multi processing off? +ve = off
@@ -316,7 +317,7 @@ opt.self [if] \ if width > 16, jump to 16-bit emulator
 opt.self [if] ( self JMP ) there 2/ {pc} t!  [then]
   {sp0} {sp} MMOV     \ Setup initial variable stack
   {rp0} {rp} MMOV     \ Setup initial return stack
-  {cold} ip MMOV      \ Get the first instruction to execute
+  {boot} ip MMOV      \ Get the first instruction to execute
   ( fall-through )
 label: vm ( Forth Inner Interpreter )
   r0 ip iLOAD         \ Get instruction to execute from IP
@@ -601,7 +602,8 @@ system[
   user <expect>  ( -- a : expect xt loc. )
   user <error>   ( -- a : <error> xt container. )
 ]system
-:s <cold> [ {cold} ] literal ;s ( -- a : cold xt loc. )
+:s <boot> [ {boot} ] literal ;s ( -- a : cold xt loc. )
+:s <quit> [ {quit} ] literal ;s ( -- a : quit xt loc. )
 : current ( -- a : get current vocabulary )
   [ {current} ] literal ;
 : root-voc ( -- a : get root vocabulary )
@@ -1073,8 +1075,6 @@ root[
 :s (does) 2r> 2* swap >r ;s compile-only
 :s (comp)
   r> [ {last} ] literal @ cfa
-  ( check we are running does> on a created word )
-  @+ [ to' (var) half ] literal <> [ -$1F ] literal and throw
   ! ;s compile-only
 : does> compile (comp) compile (does) ;
    immediate compile-only
@@ -1142,7 +1142,10 @@ opt.better-see [if] ( Start conditional compilation )
     drop ."  next  " cell+ dup @ 2* u. exit
   then
   dup [ to' compile half ] literal = if
-     drop ."  compile" cell+ dup @ instruction exit 
+     drop ."  compile" cell+ dup @ instruction exit
+  then
+  dup [ to' compile half ] literal = if
+     drop ."  compile" cell+ dup @ instruction exit
   then
   dup [ to' (up) half ] literal = if drop
      ."  (up) " cell+ dup @ u. exit
@@ -1337,7 +1340,7 @@ opt.self [if]
    query [ t' eval ] literal catch ( evaluate a line )
    ?dup if <error> @execute then ( error? )
   again ;                        ( do it all again... )
-:s (cold) ( -- : Forth boot sequence )
+:s (boot) ( -- : Forth boot sequence )
   forth definitions ( un-mess-up dictionary / set it )
   ini ( initialize the current thread correctly )
   opt.self [if]
@@ -1348,7 +1351,8 @@ opt.self [if]
   [ primitive ] literal @ 2* dup here swap - cksum
   [ check ] literal @ <> if ." bad cksum" bye then ( oops... )
   [ {options} ] literal @ #2 xor [ {options} ] literal !
-  then quit ;s ( call the interpreter loop AKA "quit" )
+  then
+  <quit> @ execute ;s ( call the interpreter loop AKA "quit" )
 opt.multi [if]
 :s task: ( "name" -- : create a named task )
   create here b/buf allot 2/ task-init ;s
@@ -1927,8 +1931,9 @@ opt.glossary [if]
 :s .voc dup  ." voc: " . cr ;s ( voc -- voc )
 : glossary get-order for aft .voc @ (w) then next ; ( -- )
 [then]
-: cold [ {cold} ] literal 2* @execute ; ( -- )
-t' (cold) half {cold} t!      \ Set starting Forth word
+: cold [ {boot} ] literal 2* @execute ; ( -- )
+t' (boot) half {boot} t!      \ Set starting Forth word
+t' quit {quit} t!             \ Set initial Forth word
 atlast {forth-wordlist} t!    \ Make wordlist work
 {forth-wordlist} {current} t! \ Set "current" dictionary
 there h t!                    \ Assign dictionary pointer
