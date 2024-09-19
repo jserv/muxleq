@@ -86,3 +86,6 @@ doubt if more effort was expended many more performance gains could be made.
 ## License
 This package is released under the Public Domain and was initially written
 by [Richard James Howe](https://github.com/howerj).
+
+## Reference
+* [SUBLEQ EFORTH: Forth Metacompilation for a SUBLEQ Machine](https://www.amazon.com/dp/B0B5VZWXPL)
