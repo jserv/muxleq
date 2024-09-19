@@ -11,8 +11,8 @@
 
 ## Introduction
 This project features a 16-bit virtual machine with a two-instruction set
-architecture called MUXLEQ, capable of running Forth. MUXLEQ is an enhancement
-of the [SUBLEQ](https://en.wikipedia.org/wiki/One-instruction_set_computer)
+architecture called MUXLEQ, capable of running [Forth](https://www.forth.com/forth/).
+MUXLEQ is an enhancement of the [SUBLEQ](https://en.wikipedia.org/wiki/One-instruction_set_computer)
 one-instruction machine, offering an additional instruction that improves
 performance and reduces program size. The MUXLEQ system retains simplicity,
 making it nearly as straightforward to implement in hardware as SUBLEQ.
