@@ -1,5 +1,6 @@
-subleq
 muxleq
+muxleq.dec
+muxleq-dec.c
 *.o
 *.exe
 *.a
