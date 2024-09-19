@@ -35,8 +35,22 @@ hello
 bye
 ```
 
-Gforth compiles the image from `muxleq.fth`, but as Forth systems are self-hosting,
-they can also be used to build new images after modifying any Forth source file.
+This allows you to operate eForth on the system. For a directory of available
+commands, enter `words` and press enter. Numbers should be inputted in Reverse
+Polish Notation; for example, inputting `2 2 + . cr` will display "4". To define
+new functions, use the following format:
+```
+: hello cr ." Hello, World" ;
+```
+
+Spaces are crucial in the syntax. After defining a function, enter `hello` to
+execute it.
+
+The system is self-hosting, meaning it can generate new eForth images using
+the current eForth image and source code. While Gforth is used to compile the
+image from `muxleq.fth`, the Forth system's self-hosting capability also allows
+for building new images after modifying any Forth source files. To initiate
+self-hosting and validation, run `make bootstrap`.
 
 ## MUXLEQ
 The pseudo code for this SUBLEQ variant, MUXLEQ, is:
