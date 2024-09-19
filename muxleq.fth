@@ -1283,9 +1283,8 @@ root[
 ]root
 opt.info [if]
   :s info cr ( --, print system info )
-    ." eForth vX.X, Public Domain,"  here . cr
-    ." Richard James Howe, howe.r.j.89@gmail.com" cr
-    ." https://github.com/howerj/subleq" cr ;s
+    ." eForth for MUXLEQ,"  here . cr
+    ." https://github.com/jserv/muxleq" cr ;s
 [else]
   :s info ;s ( --, [disabled] print system info )
 [then]
