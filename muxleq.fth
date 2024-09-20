@@ -1,4 +1,10 @@
 defined eforth [if] ' ) <ok> ! [then] ( Turn off ok prompt )
+
+\ This file contains a cross compiler and eForth interpreter for a two-
+\ instruction MUXLEQ CPU architecture. This version of Forth is derived
+\ from an eForth implementation designed for a 16-bit MUXLEQ CPU. The cross
+\ compiler, compatible with Gforth, has been thoroughly tested.
+
 only forth definitions hex
 1 constant opt.multi      ( Add in large "pause" primitive )
 1 constant opt.editor     ( Add in Text Editor )

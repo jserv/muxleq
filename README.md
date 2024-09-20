@@ -10,15 +10,22 @@
 ```
 
 ## Introduction
-This project features a 16-bit virtual machine with a two-instruction set
-architecture called MUXLEQ, capable of running [Forth](https://www.forth.com/forth/).
-MUXLEQ is an enhancement of the [SUBLEQ](https://en.wikipedia.org/wiki/One-instruction_set_computer)
-one-instruction machine, offering an additional instruction that improves
-performance and reduces program size. The MUXLEQ system retains simplicity,
-making it nearly as straightforward to implement in hardware as SUBLEQ.
-Existing SUBLEQ programs typically run on MUXLEQ without alterations. This VM,
-which integrates eForth, serves as an experimental platform for demonstrating
-execution of high-level programming languages with minimal effort.
+This project encompasses an assembler for a [SUBLEQ](https://esolangs.org/wiki/Subleq)
+CPU variant called MUXLEQ, a virtual machine built upon that assembler capable
+of running [Forth](https://www.forth.com/forth/), and a cross-compiler designed
+to target the Forth VM, based on the eForth family of the Forth programming
+language. The system is self-hosted, allowing users to create new and modified
+systems seamlessly.
+
+SUBLEQ is an esoteric and impractical single-instruction CPU, yet it achieves
+Turing-completeness, demonstrating that even with such a limited instruction set,
+it can perform any computable task given sufficient memory and time. Porting
+a Forth implementation to SUBLEQ serves as a testament to its versatility —- if
+you can adapt Forth to run on SUBLEQ, you can port it to virtually any platform.
+There is a saying about Forth: "Forth is Sudoku for programmers." This aptly
+captures an intricate and satisfying relationship with the language and the
+project, serving as an experimental platform for demonstrating execution of
+high-level programming languages with minimal effort.
 
 ## Build and Run
 This setup requires the installation of a C compiler, [Gforth](https://gforth.org/),
@@ -26,25 +33,42 @@ and GNU Make.
 * macOS: `brew install gforth`
 * Ubuntu Linux / Debian: `sudo apt-get install gforth build-essential`
 
-To run eForth on MUXLEQ, type `make run`. Below is an example session:
+Certainly! Here's the proofread and refined version of your text, optimized for inclusion in a user manual:
+
+To run eForth on MUXLEQ, simply type:
+```shell
+$ make run
+```
+
+Below is an example session demonstrating basic usage:
 ```
 words
 21 21 + . cr
-: hello ." Hello World!" cr ;
+: hello ." Hello, World!" cr ;
 hello
 bye
 ```
 
-This allows you to operate eForth on the system. For a directory of available
-commands, enter `words` and press enter. Numbers should be inputted in Reverse
-Polish Notation; for example, inputting `2 2 + . cr` will display "4". To define
-new functions, use the following format:
+This allows you to operate eForth within the system. For a list of available
+commands, enter `words` and press Enter. In Forth, the term "word" refers to
+a function. It is called a "word" because Forth functions are typically named
+using space-delimited characters, often forming a single, descriptive term.
+Words are organized into vocabularies, which collectively make up the dictionary
+in Forth. Numbers are input in Reverse Polish Notation (RPN); for instance,
+inputting:
 ```
-: hello cr ." Hello, World" ;
+2 2 + . cr
 ```
 
-Spaces are crucial in the syntax. After defining a function, enter `hello` to
-execute it.
+will display `4`.
+
+To define a new function, use the following format:
+```
+: hello cr ." Hello, World!" ;
+```
+
+Remember that spaces are critical in eForth syntax. After defining a function,
+simply type `hello` to execute it.
 
 The system is self-hosting, meaning it can generate new eForth images using
 the current eForth image and source code. While Gforth is used to compile the
@@ -53,10 +77,14 @@ for building new images after modifying any Forth source files. To initiate
 self-hosting and validation, run `make bootstrap`.
 
 ## MUXLEQ
-The MUXLEQ architecture is an enhancement of the classic SUBLEQ one-instruction
-set computer (OISC). MUXLEQ introduces an additional instruction that improves 
-performance while maintaining the simplicity of SUBLEQ. Below is the pseudo code
-for the MUXLEQ variant:
+The MUXLEQ architecture is an enhancement of the classic SUBLEQ
+[one-instruction set computer](https://en.wikipedia.org/wiki/One-instruction_set_computer) (OISC),
+offering an additional instruction that improves performance and reduces program
+size. The MUXLEQ system retains simplicity, making it nearly as straightforward
+to implement in hardware as SUBLEQ. Existing SUBLEQ programs typically run on
+MUXLEQ without alterations.
+
+Below is the pseudo code for the MUXLEQ variant:
 ```python
 while pc >= 0:
     a = m[pc + 0]
@@ -79,6 +107,17 @@ while pc >= 0:
 Removing the `elif c != -1 and c < 0:` clause effectively reverts MUXLEQ to a
 typical SUBLEQ machine, as this conditional handles the multiplexing logic unique
 to MUXLEQ.
+
+SUBLEQ machines belong to a class called OISC, which uses a single instruction
+to perform any computable task, albeit inefficiently. SUBLEQ originated from the
+"URISC" concept introduced in the 1988 paper
+[URISC: The Ultimate Reduced Instruction Set Computer](https://web.ece.ucsb.edu/~parhami/pubs_folder/parh88-ijeee-ultimate-risc.pdf).
+The intent was to provide a simple platform for computer engineering students to
+design their own instruction sets and microcode. SUBLEQ falls under arithmetic-based
+OISCs, in contrast to other types like bit-manipulation or Transport Triggered
+Architectures (MOVE-based). Despite its simplicity, SUBLEQ could be made more
+efficient with the addition of just one extra instruction, such as NAND or a
+Right Shift.
 
 A single SUBLEQ instruction is structured as follows:
 ```
@@ -116,10 +155,6 @@ considerations include:
 - Negative Numbers: Typically implemented using two's complement, but other
   methods like sign-magnitude can also be used.
 
-Despite its minimalist instruction set, SUBLEQ is Turing complete, meaning that,
-given unlimited memory and time, it can perform any computation that a more
-complex instruction set can achieve.
-
 The simplicity of the MUXLEQ design allows for further optimizations by packing
 additional functionality into the instruction set.
 Some possible variants include:
@@ -146,18 +181,29 @@ further closing the gap between minimalistic architecture and more conventional
 designs.
 
 ## eForth
-`muxleq.fth` serves as both a cross-compiler and an eForth interpreter
-specifically designed for a SUBLEQ variant. This Forth implementation
-originates from an eForth version crafted for a 16-bit bit-serial CPU. The
-cross-compiler, which is compatible with Gforth, has undergone comprehensive
-testing and is fully operational. The cross-compilation process functions as
+The image is a variant of Forth known as "eForth," though the meaning of the
+'e' is open to interpretation—possibly "embedded," among other possibilities.
+This implementation of eForth differs from standard ANS Forth implementations,
+notably lacking constructs like the "do...loop" and its variants.
+
+The concept behind eForth was to develop a system that required only a small
+set of primitives—around 30—written in assembly, to create a highly portable
+and reasonably efficient Forth. Bill Muench originally developed eForth, with
+later enhancements made by Dr. Chen-Hanson Ting.
+
+`muxleq.fth` functions as both a cross-compiler and an eForth interpreter,
+specifically designed for MUXLEQ. Written entirely in Forth, `muxleq.fth` has
+been verified for compatibility with Gforth and can also be executed using
+a pre-generated eForth image running on a MUXLEQ machine.
+
+The cross-compilation process functions as
 outlined below:
-1. SUBLEQ assembler: A specialized assembler for the SUBLEQ architecture enables
-   low-level machine code generation tailored to the SUBLEQ instruction set.
-2. Virtual machine: Leveraging the SUBLEQ assembler, a virtual machine is
+1. Assembler: A specialized assembler for the MUXLEQ architecture enables
+   low-level machine code generation tailored to the instruction set.
+2. Virtual machine: Leveraging the MUXLEQ assembler, a virtual machine is
    constructed. This VM is capable of supporting higher-level programming
    constructs, facilitating the seamless execution of Forth code within the
-   SUBLEQ environment.
+   MUXLEQ environment.
 3. Forth word definitions: These definitions are instrumental in building
    a full-fledged Forth interpreter, allowing for the creation, compilation,
    and execution of Forth programs.
@@ -166,14 +212,33 @@ outlined below:
    initializes the VM with the necessary configurations and word definitions to
    operate effectively.
 
-The eForth image possesses the capability to dynamically ascertain the size of
-the underlying SUBLEQ variant machine and adjust its operations accordingly.
-This flexibility eliminates the requirement for a power-of-two integer width,
-allowing for more versatile machine configurations. Additionally, an intriguing
-enhancement would be to adapt this eForth implementation to operate on a SUBLEQ
-machine utilizing bignums for each cell. Such an adaptation would necessitate
-the re-engineering of functions like bitwise AND, OR, and XOR, as these
-operations rely on a fixed cell width to function efficiently.
+"Meta-compilation" in Forth refers to a process similar to cross-compilation,
+though the term carries a distinct meaning in the Forth community compared to
+its use in broader computer science. This difference stems from Forth's
+evolution within the microcomputer scene, which was separate from the academic
+environment of the 1980s and earlier. The term "meta-compilation" may have been
+somewhat mistranslated. While most modern programs employ unit testing
+frameworks, here, a meta-compilation system serves as an extensive testing
+mechanism. If the system compiles image "A," which can then compile another
+image "B," and "B" matches "A" byte-for-byte, this gives reasonable confidence
+that the image is correct, or at least correct enough for self-compilation.
+
+This process is performed with the following commands:
+```shell
+$ gforth muxleq.fth > muxleq.dec
+$ sed 's/$/,/' muxleq.dec > muxleq-dec.c
+$ cc -o muxleq muxleq.c
+$ ./muxleq < muxleq.fth > muxleq-stage1.dec
+$ diff -w muxleq.dec muxleq-stage1.dec
+```
+
+The `muxleq.dec` image was initially generated using Gforth to create the first
+functional eForth for the MUXLEQ machine. Once this was achieved, the image was
+modified to support self-compilation. Although the Gforth interpreter is no
+longer required, it is retained because it is significantly faster than using
+MUXLEQ eForth to compile a new image. The image generated by Gforth should be
+identical to the one produced by MUXLEQ eForth when using the same `muxleq.fth`
+file.
 
 It is noteworthy that approximately half of the memory allocated is dedicated to
 the virtual machine, which facilitates the writing and execution of Forth code.
