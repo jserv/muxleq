@@ -2,7 +2,7 @@ defined eforth [if] ' ) <ok> ! [then] ( Turn off ok prompt )
 only forth definitions hex
 1 constant opt.multi      ( Add in large "pause" primitive )
 1 constant opt.editor     ( Add in Text Editor )
-1 constant opt.info       ( Add info printing function )
+0 constant opt.info       ( Add info printing function )
 0 constant opt.generate-c ( Generate C code )
 0 constant opt.better-see ( Replace 'see' with better version )
 0 constant opt.control    ( Add in more control structures )
