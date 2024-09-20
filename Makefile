@@ -42,7 +42,7 @@ check: muxleq
 	)
 
 # bootstrapping
-bootstrap: muxleq-stage1.dec
+bootstrap: muxleq.dec muxleq-stage1.dec
 	$(Q)if diff muxleq.dec muxleq-stage1.dec; then \
 	$(call notice, [OK]); \
 	else \
@@ -52,7 +52,7 @@ bootstrap: muxleq-stage1.dec
 
 muxleq-stage1.dec: muxleq muxleq.fth muxleq.dec
 	$(VECHO)  "Bootstrapping... "
-	$(Q)./muxleq muxleq.dec < muxleq.fth > $@
+	$(Q)./muxleq < muxleq.fth > $@
 
 clean:
 	$(RM) muxleq
