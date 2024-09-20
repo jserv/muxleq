@@ -106,6 +106,42 @@ effort, additional performance gains and capabilities could be implemented,
 further closing the gap between minimalistic architecture and more conventional
 designs.
 
+## eForth
+`muxleq.fth` serves as both a cross-compiler and an eForth interpreter
+specifically designed for a SUBLEQ variant. This Forth implementation
+originates from an eForth version crafted for a 16-bit bit-serial CPU. The
+cross-compiler, which is compatible with Gforth, has undergone comprehensive
+testing and is fully operational. The cross-compilation process functions as
+outlined below:
+1. SUBLEQ assembler: A specialized assembler for the SUBLEQ architecture enables
+   low-level machine code generation tailored to the SUBLEQ instruction set.
+2. Virtual machine: Leveraging the SUBLEQ assembler, a virtual machine is
+   constructed. This VM is capable of supporting higher-level programming
+   constructs, facilitating the seamless execution of Forth code within the
+   SUBLEQ environment.
+3. Forth word definitions: These definitions are instrumental in building
+   a full-fledged Forth interpreter, allowing for the creation, compilation,
+   and execution of Forth programs.
+4. Forth image: The finalized Forth image, encapsulating the interpreter and
+   its environment, is output to the standard output stream. This image
+   initializes the VM with the necessary configurations and word definitions to
+   operate effectively.
+
+The eForth image possesses the capability to dynamically ascertain the size of
+the underlying SUBLEQ variant machine and adjust its operations accordingly.
+This flexibility eliminates the requirement for a power-of-two integer width,
+allowing for more versatile machine configurations. Additionally, an intriguing
+enhancement would be to adapt this eForth implementation to operate on a SUBLEQ
+machine utilizing bignums for each cell. Such an adaptation would necessitate
+the re-engineering of functions like bitwise AND, OR, and XOR, as these
+operations rely on a fixed cell width to function efficiently.
+
+It is noteworthy that approximately half of the memory allocated is dedicated to
+the virtual machine, which facilitates the writing and execution of Forth code.
+The `BLOCK` word-set within this implementation does not interact directly with
+mass storage. Instead, it maps blocks to memory, enabling efficient memory
+management and access.
+
 ## License
 This package is released under the Public Domain and was initially written
 by [Richard James Howe](https://github.com/howerj).
