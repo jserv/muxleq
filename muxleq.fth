@@ -3,7 +3,6 @@ only forth definitions hex
 1 constant opt.multi      ( Add in large "pause" primitive )
 1 constant opt.editor     ( Add in Text Editor )
 0 constant opt.info       ( Add info printing function )
-0 constant opt.generate-c ( Generate C code )
 0 constant opt.better-see ( Replace 'see' with better version )
 0 constant opt.control    ( Add in more control structures )
 0 constant opt.allocate   ( Add in "allocate"/"free" )
@@ -88,11 +87,7 @@ defined eforth [if]
   :m #dec dup 8000 u>= if negate limit -1 >r else 0 >r then
      0 <# #s r> sign #> type ;m ( n16 -- )
 [then]
-opt.generate-c [if]
-  :m msep 2C emit ;m ( -- : emit "," as separator )
-[else]
-  :m msep A emit ;m  ( -- : emit space as separator )
-[then]
+:m msep A emit ;m  ( -- : emit space as separator )
 :m mdump taligned ( a u -- )
   begin ?dup
   while swap dup @ limit #dec msep tcell + swap tcell -
