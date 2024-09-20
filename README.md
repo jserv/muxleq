@@ -74,12 +74,51 @@ while pc >= 0:
         if r <= 0:
             pc = c        # Branch if the result is less than or equal to zero
         m[b] = r
-
 ```
 
 Removing the `elif c != -1 and c < 0:` clause effectively reverts MUXLEQ to a
 typical SUBLEQ machine, as this conditional handles the multiplexing logic unique
 to MUXLEQ.
+
+A single SUBLEQ instruction is structured as follows:
+```
+SUBLEQ a, b, c
+```
+
+Since SUBLEQ is the only available instruction, it is often abbreviated simply
+as:
+```
+a b c
+```
+
+The three operands `a`, `b`, and `c` are stored in three consecutive memory
+locations. Each operand represents an address in memory. The SUBLEQ instruction
+performs the following operations in pseudo-code:
+```python
+    r = m[b] - m[a]
+    if r <= 0:
+        pc = c
+    m[b] = r
+```
+
+There are three notable exceptions to the standard operation:
+1. Halting Execution: If the address `c` is negative or refers to an invalid
+   memory location outside the addressable range, the program halts.
+2. Input Operation: If the address `a` is `-1`, a byte is read from the input
+   and stored at address `b`.
+3. Output Operation: If the address `b` is negative, a byte from address `a` is
+   sent to the output.
+
+The SUBLEQ specification does not dictate how numbers are represented. Key
+considerations include:
+- Bit Length: Numbers can be 8-bit, 16-bit, 32-bit, 64-bit, or even arbitrary
+  precision.
+- Negative Numbers: Typically implemented using two's complement, but other
+  methods like sign-magnitude can also be used.
+
+Despite its minimalist instruction set, SUBLEQ is Turing complete, meaning that,
+given unlimited memory and time, it can perform any computation that a more
+complex instruction set can achieve.
 
 The simplicity of the MUXLEQ design allows for further optimizations by packing
 additional functionality into the instruction set.
