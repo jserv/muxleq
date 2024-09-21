@@ -181,15 +181,13 @@ further closing the gap between minimalistic architecture and more conventional
 designs.
 
 ## eForth
-The image is a variant of Forth known as "eForth," though the meaning of the
-'e' is open to interpretation—possibly "embedded," among other possibilities.
-This implementation of eForth differs from standard ANS Forth implementations,
-notably lacking constructs like the "do...loop" and its variants.
-
-The concept behind eForth was to develop a system that required only a small
-set of primitives—around 30—written in assembly, to create a highly portable
-and reasonably efficient Forth. Bill Muench originally developed eForth, with
-later enhancements made by Dr. Chen-Hanson Ting.
+The image is a variant of Forth known as "eForth." This implementation of eForth
+differs from standard ANS Forth implementations, notably lacking constructs like
+the "do...loop" and its variants. The concept behind eForth was to develop a
+system that required only a small set of primitives, around 30, written in
+assembly to create a highly portable and reasonably efficient Forth. Bill
+Muench originally developed eForth, with later enhancements made by Dr.
+Chen-Hanson Ting.
 
 `muxleq.fth` functions as both a cross-compiler and an eForth interpreter,
 specifically designed for MUXLEQ. Written entirely in Forth, `muxleq.fth` has
