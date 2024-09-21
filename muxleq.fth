@@ -8,7 +8,6 @@ defined eforth [if] ' ) <ok> ! [then] ( Turn off ok prompt )
 only forth definitions hex
 1 constant opt.multi      ( Add in large "pause" primitive )
 1 constant opt.editor     ( Add in Text Editor )
-0 constant opt.info       ( Add info printing function )
 0 constant opt.better-see ( Replace 'see' with better version )
 0 constant opt.control    ( Add in more control structures )
 0 constant opt.allocate   ( Add in "allocate"/"free" )
@@ -19,7 +18,6 @@ only forth definitions hex
 0 constant opt.self       ( self-interpreter [NOT WORKING] )
 : sys.echo-off 1 or ; ( bit #1 = turn echoing chars off )
 : sys.cksum    2 or ; ( bit #2 = turn checksumming on )
-: sys.info     4 or ; ( bit #3 = print info msg on startup )
 : sys.eof      8 or ; ( bit #4 = die if received EOF )
 : sys.warnv  $10 or ; ( bit #5 = warn if virtualized )
 0 ( sys.cksum ) sys.eof sys.echo-off 
@@ -192,7 +190,7 @@ meta.1 +order definitions
 label: entry       \ used to set entry point in next cell
   -1 t,            \ system entry point, set later
 opt.sys tvar {options} \ bit #1=echo off, #2 = checksum on,
-                   \ #4=info, #8=die on EOF
+                   \ #8=die on EOF
   0 tvar primitive \ any address lower must be a VM primitive
   =stksz half tvar stacksz \ must contain $80
   0 tvar zreg      \ must contain 0
@@ -1282,13 +1280,6 @@ t' (block) t' <block> >tbody t!
 root[
   $FFFF constant eforth ( --, version )
 ]root
-opt.info [if]
-  :s info cr ( --, print system info )
-    ." eForth for MUXLEQ,"  here . cr
-    ." https://github.com/jserv/muxleq" cr ;s
-[else]
-  :s info ;s ( --, [disabled] print system info )
-[then]
 opt.self [if]
 :s warnv [ {virtual} ] literal @ if
     ." Warning: Virtual 16-bit SUBLEQ VM" cr
@@ -1346,7 +1337,6 @@ opt.self [if]
   opt.self [if]
     [ {options} ] literal @ [ $10 ] literal and if warnv then
   [then]
-  [ {options} ] literal @ [ 4 ] literal and if info then
   [ {options} ] literal @ #2 and if ( checksum on? )
   [ primitive ] literal @ 2* dup here swap - cksum
   [ check ] literal @ <> if ." bad cksum" bye then ( oops... )
