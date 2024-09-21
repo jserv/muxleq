@@ -15,13 +15,10 @@ only forth definitions hex
 0 constant opt.glossary   ( Add in "glossary" word )
 0 constant opt.optimize   ( Enable extra optimization )
 1 constant opt.divmod     ( Use "opDivMod" primitive )
-0 constant opt.self       ( self-interpreter [NOT WORKING] )
 : sys.echo-off 1 or ; ( bit #1 = turn echoing chars off )
 : sys.cksum    2 or ; ( bit #2 = turn checksumming on )
 : sys.eof      8 or ; ( bit #4 = die if received EOF )
-: sys.warnv  $10 or ; ( bit #5 = warn if virtualized )
-0 ( sys.cksum ) sys.eof sys.echo-off 
-  sys.warnv constant opt.sys
+0 ( sys.cksum ) sys.eof sys.echo-off constant opt.sys
 defined (order) 0= [if]
 : (order) ( w wid*n n -- wid*n w n )
   dup if
@@ -203,12 +200,6 @@ $40 tvar mwidth    \ maximum machine width
   0 tvar r2        \ register 2
   0 tvar r3        \ register 3
   0 tvar r4        \ register 4
-opt.self [if]
-  0 tvar {virtual} \ are we virtualized?
-  0 tvar {self}    \ location of the self interpreter
-  0 tvar {pc}      \ Emulated SUBLEQ Machine program counter
-$10 tvar {width}   \ set by size detection routines
-[then]
   0 tvar h         \ dictionary pointer
   =thread half tvar {up} \ Current task addr. (Half size)
   0 tvar check     \ used for system checksum
@@ -307,13 +298,7 @@ label: chk16
   r1 r2 MMOV                       \ r2 = r1
   mwidth r2 SUB r2 +if die JMP then \ check length < max width
   r0 +if chk16 JMP then            \ check if still positive
-opt.self [if] \ if width > 16, jump to 16-bit emulator
-  r1 r2 MMOV
-  r1 {width} MMOV \ Save actual machine width
-  bwidth r2 SUB r2 +if {self} iJMP then
-[then]
   bwidth r1 SUB r1 if die JMP then \ r1 - bwidth should be 0
-opt.self [if] ( self JMP ) there 2/ {pc} t!  [then]
   {sp0} {sp} MMOV     \ Setup initial variable stack
   {rp0} {rp} MMOV     \ Setup initial return stack
   {boot} ip MMOV      \ Get the first instruction to execute
@@ -329,61 +314,6 @@ label: vm ( Forth Inner Interpreter )
   r0 ip MMOV \ "r0" holds our next instruction
   vm JMP              \ Ad infinitum...
 :m ;a (fall-through); vm JMP ;m
-opt.self [if]
-  \ THIS NEEDS REWORKING FOR MUXLEQ
-0 tvar {zreg} {zreg} 2/ tzreg !
-0 tvar {areg} {areg} 2/ tareg !
- 0000 tvar {a}     ( Emulated 'a' operand )
- 0000 tvar {b}     ( Emulated 'b' operand )
- 0000 tvar {v}     ( Temporary register 'v' )
--0010 tvar {count} ( Top bit count, modified later )
-label: self
-self 2/ {self} t!
-  {virtual} NG1!
-  {width} {count} ADD
-label: self-loop
-  {pc} {v} MMOV \ Copy {pc} for next instruction
-  neg1 2/ t, {v} 2/ t, -1 t, \ Conditionally halt on '{c}'
-  {a} {pc} iLOAD {pc} INC
-  {b} {pc} iLOAD {pc} INC
-  {a} {v} MMOV {v} INC {v} +if ( Input byte? )
-    {b} {v} MMOV {v} INC {v} +if ( Output byte? )
-      ( Neither Input nor Output, must be normal instruction )
-      \ This section performs "m[b] = m[b] - m[a]" and loads
-      \ the result back into "{a}". A custom "iSUB" routine
-      \ might speed things up here, one that stored the result
-      \ in "{b}" but also kept a copy in "{a}".
-      {a} {a} iLOAD  \ a = m[a]
-      {a} {b} iSUB   \ m[b] = m[b] - a
-      {a} {b} iLOAD  \ a = m[b]
-      \ This section prepares "{a}" for the next "+if", it
-      \ shifts the 16-bit into the top place depending on the
-      \ machine width. The bits lower than the 16-bit do not
-      \ matter unless they are all zero, in which case this
-      \ shifting has no effect anyway.
-      {count} {v} MMOV
-      label: self.bit
-        {a} {a} ADD {v} DEC 
-      {v} +if self.bit JMP then
-      {a} +if \ !(v == 0 || v & 0x8000)
-        {pc} INC
-        self-loop JMP
-      then
-      {pc} {pc} iLOAD \ pc = m[c]
-      self-loop JMP
-    then ( Output byte from m[a] )
-    {a} {a} iLOAD
-    {a} PUT
-    {pc} INC
-    self-loop JMP
-  then ( Input byte and store in m[b] )
-  {a} GET
-  {a} {b} iSTORE
-  {pc} INC
-  self-loop JMP ( And do it again... )
-  0 tzreg !
-  1 tareg !
-[then]
 assembler.1 -order
 :a opSwap tos r0 MMOV tos {sp} iLOAD r0 {sp} iSTORE ;a
 :a opDup ++sp tos {sp} iSTORE ;a ( n -- n n )
@@ -1280,11 +1210,6 @@ t' (block) t' <block> >tbody t!
 root[
   $FFFF constant eforth ( --, version )
 ]root
-opt.self [if]
-:s warnv [ {virtual} ] literal @ if
-    ." Warning: Virtual 16-bit SUBLEQ VM" cr
-    then ;s
-[then]
 :s xio ( xt xt xt -- : exchange I/O )
   [ t' accept ] literal <expect> ! <tap> ! <echo> ! <ok> ! ;s
 :s hand ( -- )
@@ -1334,9 +1259,6 @@ opt.self [if]
 :s (boot) ( -- : Forth boot sequence )
   forth definitions ( un-mess-up dictionary / set it )
   ini ( initialize the current thread correctly )
-  opt.self [if]
-    [ {options} ] literal @ [ $10 ] literal and if warnv then
-  [then]
   [ {options} ] literal @ #2 and if ( checksum on? )
   [ primitive ] literal @ 2* dup here swap - cksum
   [ check ] literal @ <> if ." bad cksum" bye then ( oops... )
