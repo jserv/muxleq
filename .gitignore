@@ -1,11 +1,9 @@
 muxleq
-muxleq.dec
-muxleq-dec.c
-muxleq-stage1.dec
+stage0.c
+stage0.dec
+stage1.dec
 *.o
 *.exe
 *.a
 *.dll
 *.so
-1.dec
-2.dec

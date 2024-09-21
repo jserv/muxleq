@@ -7,18 +7,18 @@ CFLAGS += -Wall -Wextra
 
 all: muxleq
 
-muxleq: muxleq.c muxleq-dec.c
+muxleq: muxleq.c stage0.c
 	$(VECHO) "  CC+LD\t$@\n"
 	$(Q)$(CC) $(CFLAGS) -o $@ muxleq.c
 
-run: muxleq muxleq.dec
+run: muxleq stage0.dec
 	$(Q)./muxleq
 
-muxleq-dec.c: muxleq.dec
+stage0.c: stage0.dec
 	$(VECHO) "  EMBED\t$@\n"
 	$(Q)sed 's/$$/,/' $^ > $@
 
-muxleq.dec: muxleq.fth
+stage0.dec: muxleq.fth
 	$(Q)gforth $< > $@
 
 CHECK_FILES := \
@@ -42,15 +42,15 @@ check: muxleq
 	)
 
 # bootstrapping
-bootstrap: muxleq.dec muxleq-stage1.dec
-	$(Q)if diff muxleq.dec muxleq-stage1.dec; then \
+bootstrap: stage0.dec stage1.dec
+	$(Q)if diff stage0.dec stage1.dec; then \
 	$(call notice, [OK]); \
 	else \
 	$(PRINTF) "Unable to bootstrap. Aborting"; \
 	exit 1; \
 	fi;
 
-muxleq-stage1.dec: muxleq muxleq.fth muxleq.dec
+stage1.dec: muxleq muxleq.fth stage0.dec
 	$(VECHO)  "Bootstrapping... "
 	$(Q)./muxleq < muxleq.fth > $@
 
@@ -58,4 +58,4 @@ clean:
 	$(RM) muxleq
 
 distclean: clean
-	$(RM) muxleq-dec.c muxleq.dec muxleq-stage1.dec
+	$(RM) stage0.c stage0.dec stage1.dec

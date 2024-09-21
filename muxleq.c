@@ -15,7 +15,7 @@
 
 /* the memory array of the virtual machine */
 static uint16_t m[SZ] = {
-#include "muxleq-dec.c"
+#include "stage0.c"
 };
 
 int main()
