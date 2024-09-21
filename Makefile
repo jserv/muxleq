@@ -5,14 +5,16 @@ CFLAGS += -Wall -Wextra
 
 .PHONY: run bootstrap clean
 
-all: muxleq
+BIN := muxleq
 
-muxleq: muxleq.c stage0.c
+all: $(BIN)
+
+$(BIN): muxleq.c stage0.c
 	$(VECHO) "  CC+LD\t$@\n"
 	$(Q)$(CC) $(CFLAGS) -o $@ muxleq.c
 
-run: muxleq stage0.dec
-	$(Q)./muxleq
+run: $(BIN)
+	$(Q)./$(BIN)
 
 stage0.c: stage0.dec
 	$(Q)sed 's/$$/,/' $^ > $@
@@ -30,10 +32,10 @@ EXPECTED_loops = *
 EXPECTED_radix = 2730
 EXPECTED_sqrt = 49
 
-check: muxleq
+check: $(BIN)
 	$(Q)$(foreach e,$(CHECK_FILES),\
 	    $(PRINTF) "Running tests/$(e).fth ... "; \
-	    if ./muxleq < tests/$(e).fth | grep -q "$(strip $(EXPECTED_$(e)))"; then \
+	    if ./$(BIN) < tests/$(e).fth | grep -q "$(strip $(EXPECTED_$(e)))"; then \
 	    $(call notice, [OK]); \
 	    else \
 	    $(PRINTF) "Failed.\n"; \
@@ -50,12 +52,25 @@ bootstrap: stage0.dec stage1.dec
 	exit 1; \
 	fi;
 
-stage1.dec: muxleq muxleq.fth
+stage1.dec: $(BIN) muxleq.fth
 	$(VECHO)  "Bootstrapping... "
-	$(Q)./muxleq < muxleq.fth > $@
+	$(Q)./$(BIN) < muxleq.fth > $@
+
+TIME = 5000
+TMPDIR := $(shell mktemp -d)
+bench: $(BIN)
+	$(VECHO)  "Benchmarking... "
+	$(Q)time -p (echo "${TIME} ms bye" | ./$(BIN)) 2> $(TMPDIR)/bench
+	$(Q)if grep -q real $(TMPDIR)/bench; then \
+	$(call notice, [OK]); \
+	cat $(TMPDIR)/bench; \
+	else \
+	$(PRINTF) "Failed.\n"; \
+	exit 1; \
+	fi;
 
 clean:
-	$(RM) muxleq
+	$(RM) $(BIN)
 
 distclean: clean
 	$(RM) stage0.c stage0.dec stage1.dec
