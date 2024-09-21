@@ -15,10 +15,10 @@ run: muxleq stage0.dec
 	$(Q)./muxleq
 
 stage0.c: stage0.dec
-	$(VECHO) "  EMBED\t$@\n"
 	$(Q)sed 's/$$/,/' $^ > $@
 
 stage0.dec: muxleq.fth
+	$(VECHO) "  FORTH\t$@\n"
 	$(Q)gforth $< > $@
 
 CHECK_FILES := \
@@ -50,7 +50,7 @@ bootstrap: stage0.dec stage1.dec
 	exit 1; \
 	fi;
 
-stage1.dec: muxleq muxleq.fth stage0.dec
+stage1.dec: muxleq muxleq.fth
 	$(VECHO)  "Bootstrapping... "
 	$(Q)./muxleq < muxleq.fth > $@
 
