@@ -60,8 +60,8 @@ TIME = 5000
 TMPDIR := $(shell mktemp -d)
 bench: $(BIN)
 	$(VECHO)  "Benchmarking... "
-	$(Q)time -p (echo "${TIME} ms bye" | ./$(BIN)) 2> $(TMPDIR)/bench
-	$(Q)if grep -q real $(TMPDIR)/bench; then \
+	$(Q)(echo "${TIME} ms bye" | time -p ./$(BIN) > /dev/null) 2> $(TMPDIR)/bench ; \
+	if grep -q real $(TMPDIR)/bench; then \
 	$(call notice, [OK]); \
 	cat $(TMPDIR)/bench; \
 	else \
